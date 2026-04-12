@@ -9,7 +9,7 @@
 |---|-------|------|--------------|-------|
 | 1 | PlayerRig & Controller Input | 3/3 | Complete   | 2026-04-12 |
 | 2 | Scenario Selection Screen | World-space canvas, A/B controller select environment | SEL-01–06 | 3 |
-| 3 | Kitchen Environment | Kitchen geometry, LPG fire, wall sign, rack | KIT-01–05 | 3 |
+| 3 | Kitchen Environment | 3/3 | Complete    | 2026-04-12 |
 | 4 | Server Room Environment | Server rack geometry, spark fire, wall sign, rack | SRV-01–04 | 3 |
 | 5 | Game Logic Scripts | ExtinguisherController, SprayController, GameManager | EXT-01–03, SUP-01–06, GM-01–05 | 3 |
 | 6 | HUD Canvas | TMP_Text timer, extinguisher popup, result display | HUD-01–04 | 2 |
@@ -71,7 +71,7 @@
 **Requirements:** KIT-01, KIT-02, KIT-03, KIT-04, KIT-05
 
 **Plans:**
-1. Kitchen geometry — floor, walls, counter, gas stove, LPG cylinder using Unity primitives
+3/3 plans complete
 2. Fire particle system — orange/yellow Particle System on LPG cylinder, looping, auto-play
 3. Extinguisher rack and wall sign — rack with extinguisher objects, TextMesh sign reading "GAS LEAK — Class C fire. Select the correct extinguisher."
 

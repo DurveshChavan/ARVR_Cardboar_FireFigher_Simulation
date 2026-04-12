@@ -28,11 +28,11 @@ Requirements for the initial (and only) release. Each maps to roadmap phases.
 
 ### Kitchen Environment
 
-- [ ] **KIT-01**: Kitchen environment has floor, walls, counter, and gas stove geometry
-- [ ] **KIT-02**: LPG cylinder is present in kitchen
-- [ ] **KIT-03**: Orange/yellow Particle System fire effect is on the LPG cylinder
-- [ ] **KIT-04**: Extinguisher rack is present in kitchen with extinguisher objects
-- [ ] **KIT-05**: Wall sign reads "GAS LEAK — Class C fire. Select the correct extinguisher."
+- [x] **KIT-01**: Kitchen environment has floor, walls, counter, and gas stove geometry
+- [x] **KIT-02**: LPG cylinder is present in kitchen
+- [x] **KIT-03**: Orange/yellow Particle System fire effect is on the LPG cylinder
+- [x] **KIT-04**: Extinguisher rack is present in kitchen with extinguisher objects
+- [x] **KIT-05**: Wall sign reads "GAS LEAK — Class C fire. Select the correct extinguisher."
 
 ### Server Room Environment
 
