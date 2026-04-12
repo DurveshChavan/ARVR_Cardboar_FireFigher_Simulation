@@ -7,7 +7,7 @@
 
 | # | Phase | Goal | Requirements | Plans |
 |---|-------|------|--------------|-------|
-| 1 | PlayerRig & Controller Input | CharacterController movement + verified Xbox input | RIG-01–07 | 3 |
+| 1 | PlayerRig & Controller Input | 3/3 | Complete   | 2026-04-12 |
 | 2 | Scenario Selection Screen | World-space canvas, A/B controller select environment | SEL-01–06 | 3 |
 | 3 | Kitchen Environment | Kitchen geometry, LPG fire, wall sign, rack | KIT-01–05 | 3 |
 | 4 | Server Room Environment | Server rack geometry, spark fire, wall sign, rack | SRV-01–04 | 3 |
@@ -24,7 +24,7 @@
 **Requirements:** RIG-01, RIG-02, RIG-03, RIG-04, RIG-05, RIG-06, RIG-07
 
 **Plans:**
-1. PlayerRig hierarchy setup — create empty PlayerRig, add CharacterController, place Main Camera child at (0,1.6,0)
+3/3 plans complete
 2. PlayerMovement.cs — left stick X/Y movement, gravity, Gamepad.current null check, New Input System only
 3. Input verification — confirm Gamepad.current detects Xbox controller, left stick moves rig correctly
 
