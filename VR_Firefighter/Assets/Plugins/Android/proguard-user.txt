@@ -1,0 +1,20 @@
+# Keep all Cardboard SDK Java classes (accessed from native via JNI)
+-keep class com.google.cardboard.** { *; }
+-keep class com.google.cardboard.sdk.** { *; }
+-keep class com.google.cardboard.sdk.qrcode.** { *; }
+-keep class com.google.cardboard.proto.** { *; }
+
+# Keep Google Play Services Vision (used by Cardboard QR scanner)
+-keep class com.google.android.gms.vision.** { *; }
+-keep class com.google.android.gms.common.** { *; }
+
+# Keep UsedByNative annotation and annotated members
+-keep @com.google.cardboard.sdk.UsedByNative class * { *; }
+-keepclassmembers class ** {
+    @com.google.cardboard.sdk.UsedByNative *;
+}
+
+# Prevent stripping of JNI-registered native methods
+-keepclasseswithmembers class * {
+    native <methods>;
+}
