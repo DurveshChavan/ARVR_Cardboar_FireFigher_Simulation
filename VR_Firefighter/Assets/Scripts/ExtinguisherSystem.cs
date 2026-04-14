@@ -73,7 +73,7 @@ public class ExtinguisherEquipper : MonoBehaviour
             equipped.transform.SetParent(holdPosition);
             equipped.transform.localPosition = Vector3.zero;
             equipped.transform.localRotation = Quaternion.identity;
-            equipped.transform.localScale = Vector3.one * 0.4f; // VR scale — smaller for close stereo view
+            equipped.transform.localScale = Vector3.one; // Keep original model size — it's already correct
         }
         if (GameManager.Instance != null)
             GameManager.Instance.currentExtinguisher = (GameManager.ExtType)index;
