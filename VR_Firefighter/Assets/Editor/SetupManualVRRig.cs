@@ -7,7 +7,7 @@ using UnityEngine;
 ///
 /// What it does:
 ///   1. Finds or creates PlayerRig with CharacterController
-///   2. Creates Neck (child of PlayerRig) at (0, 1.7, 0)
+///   2. Creates Neck (child of PlayerRig) at (0, 1.5, 0)
 ///   3. Creates Head (child of Neck) at (0, 0, 0)
 ///   4. Creates LeftEye Camera (child of Head)
 ///   5. Creates RightEye Camera (child of Head), removes AudioListener
@@ -74,8 +74,8 @@ public class SetupManualVRRig : EditorWindow
             neckObj = new GameObject("Neck");
             Undo.RegisterCreatedObjectUndo(neckObj, "Create Neck");
             neckObj.transform.SetParent(playerRig.transform, false);
-            neckObj.transform.localPosition = new Vector3(0f, 1.7f, 0f);
-            Debug.Log("[SetupManualVR] Created Neck at (0, 1.7, 0).");
+            neckObj.transform.localPosition = new Vector3(0f, 1.5f, 0f);
+            Debug.Log("[SetupManualVR] Created Neck at (0, 1.5, 0).");
         }
 
         // --- Create Head ---
@@ -329,7 +329,7 @@ public class SetupManualVRRig : EditorWindow
         {
             Undo.RecordObject(playerRig.transform, "Fix PlayerRig height");
             Vector3 pos = playerRig.transform.localPosition;
-            pos.y = 0f;  // Ground level — Neck provides the 1.7 eye height
+            pos.y = 0f;  // Ground level — Neck provides the 1.5 eye height
             playerRig.transform.localPosition = pos;
             Debug.Log("[SetupManualVR] Reset PlayerRig Y to 0 (Neck provides eye height).");
         }
@@ -342,7 +342,7 @@ public class SetupManualVRRig : EditorWindow
 
         Debug.Log("═══════════════════════════════════════════════════════");
         Debug.Log("[SetupManualVR] ✓ COMPLETE! Hierarchy built and wired.");
-        Debug.Log("  PlayerRig (Y=0) → Neck (Y=1.7) → Head → LeftEye + RightEye");
+        Debug.Log("  PlayerRig (Y=0) → Neck (Y=1.5) → Head → LeftEye + RightEye");
         Debug.Log("  ManualVRRig component added and auto-configured.");
         Debug.Log("  WeaponHoldPoint + HUD_Canvas reparented to Head.");
         Debug.Log("  Old Main Camera disabled. LeftEye tagged MainCamera.");
@@ -355,7 +355,7 @@ public class SetupManualVRRig : EditorWindow
             "ManualVR Rig Setup Complete",
             "Hierarchy created:\n\n" +
             "PlayerRig (Y=0)\n" +
-            "  └─ Neck (Y=1.7 — gamepad look)\n" +
+            "  └─ Neck (Y=1.5 — gamepad look)\n" +
             "     └─ Head (gyro tracking)\n" +
             "        ├─ LeftEye [Camera, MainCamera]\n" +
             "        ├─ RightEye [Camera]\n" +
