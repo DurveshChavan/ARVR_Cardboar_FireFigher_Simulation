@@ -35,11 +35,75 @@ public class ExtinguisherEquipper : MonoBehaviour
 
     void Start()
     {
+        // ── Self-wire: find holdPosition if not assigned ──
+        if (holdPosition == null)
+        {
+            GameObject hp = GameObject.Find("WeaponHoldPoint");
+            if (hp != null) holdPosition = hp.transform;
+            else Debug.LogWarning("[ExtinguisherEquipper] WeaponHoldPoint not found!");
+        }
+
+        // ── Self-wire: ensure Aimer exists on this GameObject ──
+        ExtinguisherAimer aimer = GetComponent<ExtinguisherAimer>();
+        if (aimer == null)
+        {
+            aimer = gameObject.AddComponent<ExtinguisherAimer>();
+            Debug.Log("[ExtinguisherEquipper] Auto-added ExtinguisherAimer");
+        }
+        if (aimer.holdPosition == null) aimer.holdPosition = holdPosition;
+
+        // ── Self-wire: ensure Shooter exists on this GameObject ──
+        ExtinguisherShooter shooter = GetComponent<ExtinguisherShooter>();
+        if (shooter == null)
+        {
+            shooter = gameObject.AddComponent<ExtinguisherShooter>();
+            Debug.Log("[ExtinguisherEquipper] Auto-added ExtinguisherShooter");
+        }
+        if (shooter.aimer == null) shooter.aimer = aimer;
+        if (shooter.equipper == null) shooter.equipper = this;
+        if (shooter.holdPosition == null) shooter.holdPosition = holdPosition;
+
+        // ── Self-wire: find spray particles if not assigned ──
+        if (shooter.dcpSpray == null)  shooter.dcpSpray = FindSpray("DCP_Spray");
+        if (shooter.co2Spray == null)  shooter.co2Spray = FindSpray("CO2_Spray");
+        if (shooter.waterSpray == null) shooter.waterSpray = FindSpray("Water_Spray");
+
+        // ── Self-wire: find extinguisher models if not assigned ──
+        if (dcpExtinguisher == null) dcpExtinguisher = FindInactive("Ext_DCP");
+        if (co2Extinguisher == null) co2Extinguisher = FindInactive("Ext_CO2");
+        if (waterExtinguisher == null) waterExtinguisher = FindInactive("Ext_Water");
+
+        // ── Self-wire: find equippedLabel if not assigned ──
+        if (equippedLabel == null)
+        {
+            GameObject labelObj = GameObject.Find("ExtinguisherText");
+            if (labelObj != null) equippedLabel = labelObj.GetComponent<TMPro.TMP_Text>();
+        }
+
+        // ── Equip first extinguisher ──
         extinguishers = new GameObject[] { dcpExtinguisher, co2Extinguisher, waterExtinguisher };
         foreach (var e in extinguishers)
             if (e != null) e.SetActive(false);
         EquipExtinguisher(0);
-        Debug.Log("ExtinguisherEquipper ready");
+
+        Debug.Log($"ExtinguisherEquipper ready — DCP={dcpExtinguisher != null} CO2={co2Extinguisher != null} Water={waterExtinguisher != null} Hold={holdPosition != null}");
+    }
+
+    ParticleSystem FindSpray(string name)
+    {
+        foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+            if (go.name == name && go.scene.isLoaded)
+                return go.GetComponent<ParticleSystem>();
+        return null;
+    }
+
+    GameObject FindInactive(string name)
+    {
+        GameObject obj = GameObject.Find(name);
+        if (obj != null) return obj;
+        foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+            if (go.name == name && go.scene.isLoaded) return go;
+        return null;
     }
 
     void Update()
