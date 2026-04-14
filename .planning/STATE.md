@@ -44,9 +44,17 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 - **Unity project path:** `C:\AR_SCE\VR_Firefighter`
 - **All C# scripts go in:** `Assets/Scripts/`
 - **Engine:** Unity 6.3 LTS
-- **Platform:** Android + Google Cardboard (XR Plugin)
+- **Platform:** Android + Google Cardboard VIEWER, but using ManualVRRig (NO Cardboard XR Plugin — abandoned due to display subsystem crash on Unity 6)
+- **VR Approach:** ManualVRRig.cs — stereo split-screen via Camera rects + Android gyroscope + gamepad fallback
 - **Input system:** `UnityEngine.InputSystem` ONLY — `Gamepad.current` with null check
-- **FORBIDDEN:** `Input.GetAxis()`, `Input.GetButton()`, `Input.GetButtonDown()`
+- **FORBIDDEN:** `Input.GetAxis()`, `Input.GetButton()`, `Input.GetButtonDown()`  *(exception: `Input.gyro` legacy API is allowed — only way to access gyroscope)*
 - **Scene structure:** Single scene, objects toggled active/inactive
-- **HUD:** World Space Canvas, child of Main Camera
+- **HUD:** World Space Canvas, child of Head (or LeftEye) camera object
 - **Deadline:** 12-hour build — no scope creep
+
+## Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260415-0m1 | Replace Cardboard XR Plugin with ManualVRRig | 2026-04-14 | 2bde5a3 | [260415-0m1](./quick/260415-0m1-replace-cardboard-xr-plugin-with-manualv/) |
+
