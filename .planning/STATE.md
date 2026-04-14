@@ -57,4 +57,5 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260415-0m1 | Replace Cardboard XR Plugin with ManualVRRig | 2026-04-14 | 2bde5a3 | [260415-0m1](./quick/260415-0m1-replace-cardboard-xr-plugin-with-manualv/) |
+| 260415-1is | Phase A: Fix camera height, weapon/HUD reparent, fire visuals, spray wiring | 2026-04-14 | e62b532 | [260415-1is](./quick/260415-1is-phase-a-fix-camera-height-reparent-weapo/) |
 
