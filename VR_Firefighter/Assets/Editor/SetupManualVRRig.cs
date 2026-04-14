@@ -15,6 +15,9 @@ using UnityEngine;
 ///   7. Disables the old Main Camera (or deletes it)
 ///   8. Adds ManualVRRig to PlayerRig and auto-wires all 4 references
 ///   9. Tags LeftEye as MainCamera
+///  10. Wires CardboardPlayerController.cameraTransform to Head
+///  11. Wires ExtinguisherAimer + ExtinguisherShooter holdPosition to WeaponHoldPoint
+///  12. Wires ExtinguisherShooter spray particle references
 /// </summary>
 public class SetupManualVRRig : EditorWindow
 {
@@ -152,6 +155,8 @@ public class SetupManualVRRig : EditorWindow
         }
 
         // --- Reparent old Main Camera's children to Head ---
+        // This moves WeaponHoldPoint, HUD_Canvas, etc. to be children of Head
+        // so they are visible to both LeftEye and RightEye cameras
         if (childrenToReparent != null)
         {
             foreach (Transform child in childrenToReparent)
@@ -159,6 +164,41 @@ public class SetupManualVRRig : EditorWindow
                 if (child == null) continue;
                 Undo.SetTransformParent(child, headObj.transform, "Reparent " + child.name);
                 Debug.Log($"[SetupManualVR] Migrated '{child.name}' from old Main Camera to Head.");
+            }
+        }
+
+        // --- Also search for WeaponHoldPoint if it wasn't a child of Main Camera ---
+        Transform weaponHold = headObj.transform.Find("WeaponHoldPoint");
+        if (weaponHold == null)
+        {
+            // Search globally for WeaponHoldPoint
+            foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+            {
+                if (go.name == "WeaponHoldPoint" && go.scene.isLoaded)
+                {
+                    Undo.SetTransformParent(go.transform, headObj.transform, "Reparent WeaponHoldPoint to Head");
+                    weaponHold = go.transform;
+                    Debug.Log("[SetupManualVR] Found WeaponHoldPoint elsewhere — reparented to Head.");
+                    break;
+                }
+            }
+        }
+
+        // --- Also search for HUD_Canvas ---
+        Transform hudCanvas = headObj.transform.Find("HUD_Canvas");
+        if (hudCanvas == null)
+        {
+            foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+            {
+                if (go.name == "HUD_Canvas" && go.scene.isLoaded)
+                {
+                    Undo.SetTransformParent(go.transform, headObj.transform, "Reparent HUD_Canvas to Head");
+                    go.transform.localPosition = new Vector3(0f, 0f, 1.5f);
+                    go.transform.localRotation = Quaternion.identity;
+                    go.transform.localScale = new Vector3(0.0005f, 0.0005f, 0.0005f);
+                    Debug.Log("[SetupManualVR] Found HUD_Canvas elsewhere — reparented to Head.");
+                    break;
+                }
             }
         }
 
@@ -184,6 +224,15 @@ public class SetupManualVRRig : EditorWindow
                 oldListener.enabled = false;
             }
 
+            // Disable TrackedPoseDriver if present (no longer needed — ManualVRRig replaces it)
+            var tpd = oldMainCam.GetComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>();
+            if (tpd != null)
+            {
+                Undo.RecordObject(tpd, "Disable TrackedPoseDriver");
+                tpd.enabled = false;
+                Debug.Log("[SetupManualVR] Disabled TrackedPoseDriver on old Main Camera.");
+            }
+
             Debug.Log("[SetupManualVR] Disabled old Main Camera (camera, tag, audio listener).");
         }
 
@@ -195,13 +244,85 @@ public class SetupManualVRRig : EditorWindow
             Debug.Log("[SetupManualVR] Added ManualVRRig component to PlayerRig.");
         }
 
-        // --- Wire the references ---
+        // --- Wire ManualVRRig references ---
         Undo.RecordObject(vrRig, "Wire ManualVRRig references");
         vrRig.leftEye = leftCam;
         vrRig.rightEye = rightCam;
         vrRig.neck = neckObj.transform;
         vrRig.head = headObj.transform;
         Debug.Log("[SetupManualVR] Wired all 4 references on ManualVRRig.");
+
+        // --- Wire CardboardPlayerController.cameraTransform to Head ---
+        CardboardPlayerController cpc = playerRig.GetComponent<CardboardPlayerController>();
+        if (cpc != null)
+        {
+            SerializedObject cpcSO = new SerializedObject(cpc);
+            SerializedProperty camProp = cpcSO.FindProperty("cameraTransform");
+            if (camProp != null)
+            {
+                camProp.objectReferenceValue = headObj.transform;
+                cpcSO.ApplyModifiedProperties();
+                Debug.Log("[SetupManualVR] Wired CardboardPlayerController.cameraTransform → Head.");
+            }
+        }
+
+        // --- Wire ExtinguisherAimer + ExtinguisherShooter holdPosition ---
+        if (weaponHold != null)
+        {
+            ExtinguisherAimer aimer = playerRig.GetComponent<ExtinguisherAimer>();
+            if (aimer != null)
+            {
+                SerializedObject aimerSO = new SerializedObject(aimer);
+                SerializedProperty holdProp = aimerSO.FindProperty("holdPosition");
+                if (holdProp != null)
+                {
+                    holdProp.objectReferenceValue = weaponHold;
+                    aimerSO.ApplyModifiedProperties();
+                    Debug.Log("[SetupManualVR] Wired ExtinguisherAimer.holdPosition → WeaponHoldPoint.");
+                }
+            }
+
+            ExtinguisherShooter shooter = playerRig.GetComponent<ExtinguisherShooter>();
+            if (shooter != null)
+            {
+                SerializedObject shooterSO = new SerializedObject(shooter);
+
+                SerializedProperty shootHoldProp = shooterSO.FindProperty("holdPosition");
+                if (shootHoldProp != null)
+                {
+                    shootHoldProp.objectReferenceValue = weaponHold;
+                }
+
+                // Wire aimer and equipper references
+                ExtinguisherEquipper equipper = playerRig.GetComponent<ExtinguisherEquipper>();
+                SerializedProperty aimerRef = shooterSO.FindProperty("aimer");
+                if (aimerRef != null && aimer != null) aimerRef.objectReferenceValue = aimer;
+                SerializedProperty equipperRef = shooterSO.FindProperty("equipper");
+                if (equipperRef != null && equipper != null) equipperRef.objectReferenceValue = equipper;
+
+                // Wire spray particle references — find DCP_Spray, CO2_Spray, Water_Spray in scene
+                WireSprayParticle(shooterSO, "dcpSpray", "DCP_Spray");
+                WireSprayParticle(shooterSO, "co2Spray", "CO2_Spray");
+                WireSprayParticle(shooterSO, "waterSpray", "Water_Spray");
+
+                shooterSO.ApplyModifiedProperties();
+                Debug.Log("[SetupManualVR] Wired ExtinguisherShooter (holdPosition, aimer, equipper, sprays).");
+            }
+
+            // Wire ExtinguisherEquipper holdPosition
+            ExtinguisherEquipper eq = playerRig.GetComponent<ExtinguisherEquipper>();
+            if (eq != null)
+            {
+                SerializedObject eqSO = new SerializedObject(eq);
+                SerializedProperty eqHoldProp = eqSO.FindProperty("holdPosition");
+                if (eqHoldProp != null)
+                {
+                    eqHoldProp.objectReferenceValue = weaponHold;
+                    eqSO.ApplyModifiedProperties();
+                    Debug.Log("[SetupManualVR] Wired ExtinguisherEquipper.holdPosition → WeaponHoldPoint.");
+                }
+            }
+        }
 
         // --- Update PlayerRig position (remove the 1.6 since Neck handles eye height) ---
         if (playerRig.transform.localPosition.y > 1.0f)
@@ -221,23 +342,49 @@ public class SetupManualVRRig : EditorWindow
 
         Debug.Log("═══════════════════════════════════════════════════════");
         Debug.Log("[SetupManualVR] ✓ COMPLETE! Hierarchy built and wired.");
-        Debug.Log("  PlayerRig → Neck → Head → LeftEye + RightEye");
+        Debug.Log("  PlayerRig (Y=0) → Neck (Y=1.7) → Head → LeftEye + RightEye");
         Debug.Log("  ManualVRRig component added and auto-configured.");
+        Debug.Log("  WeaponHoldPoint + HUD_Canvas reparented to Head.");
         Debug.Log("  Old Main Camera disabled. LeftEye tagged MainCamera.");
+        Debug.Log("  CardboardPlayerController.cameraTransform → Head.");
+        Debug.Log("  ExtinguisherAimer/Shooter/Equipper → WeaponHoldPoint.");
+        Debug.Log("  Spray particles wired (DCP_Spray, CO2_Spray, Water_Spray).");
         Debug.Log("═══════════════════════════════════════════════════════");
 
         EditorUtility.DisplayDialog(
             "ManualVR Rig Setup Complete",
             "Hierarchy created:\n\n" +
-            "PlayerRig\n" +
-            "  └─ Neck (gamepad look)\n" +
+            "PlayerRig (Y=0)\n" +
+            "  └─ Neck (Y=1.7 — gamepad look)\n" +
             "     └─ Head (gyro tracking)\n" +
             "        ├─ LeftEye [Camera, MainCamera]\n" +
-            "        └─ RightEye [Camera]\n\n" +
-            "ManualVRRig component wired with all 4 references.\n" +
-            "Old Main Camera disabled.\n\n" +
-            "Build your APK and test!",
+            "        ├─ RightEye [Camera]\n" +
+            "        ├─ WeaponHoldPoint (extinguishers)\n" +
+            "        └─ HUD_Canvas\n\n" +
+            "All references wired. Build APK and test!",
             "OK"
         );
+    }
+
+    static void WireSprayParticle(SerializedObject so, string propName, string objName)
+    {
+        foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
+        {
+            if (go.name == objName && go.scene.isLoaded)
+            {
+                ParticleSystem ps = go.GetComponent<ParticleSystem>();
+                if (ps != null)
+                {
+                    SerializedProperty prop = so.FindProperty(propName);
+                    if (prop != null)
+                    {
+                        prop.objectReferenceValue = ps;
+                        Debug.Log($"[SetupManualVR] Wired {propName} → {objName}");
+                    }
+                }
+                return;
+            }
+        }
+        Debug.LogWarning($"[SetupManualVR] {objName} not found in scene — spray will not work for this type.");
     }
 }
