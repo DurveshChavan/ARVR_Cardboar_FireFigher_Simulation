@@ -73,11 +73,12 @@ public class ExtinguisherEquipper : MonoBehaviour
             equipped.transform.SetParent(holdPosition);
             equipped.transform.localPosition = Vector3.zero;
             equipped.transform.localRotation = Quaternion.identity;
-            equipped.transform.localScale = Vector3.one * 0.7f; // Scale down for VR view
+            equipped.transform.localScale = Vector3.one * 0.4f; // VR scale — smaller for close stereo view
         }
         if (GameManager.Instance != null)
             GameManager.Instance.currentExtinguisher = (GameManager.ExtType)index;
         ShowPopup(index);
+        Debug.Log($"Equipped: {names[index]} (scale=0.4, parent={holdPosition?.name})");
     }
 
     void ShowPopup(int index)
@@ -107,11 +108,11 @@ public class ExtinguisherAimer : MonoBehaviour
     public Transform holdPosition;
 
     [Header("Idle Position (hip carry)")]
-    public Vector3 idleLocalPosition = new Vector3(0.35f, -0.4f, 0.75f);
-    public Vector3 idleLocalRotation = new Vector3(0f, -15f, 0f);
+    public Vector3 idleLocalPosition = new Vector3(0.15f, -0.35f, 0.45f);
+    public Vector3 idleLocalRotation = new Vector3(0f, -10f, 0f);
 
     [Header("Aimed Position (center, raised)")]
-    public Vector3 aimedLocalPosition = new Vector3(0.0f, -0.25f, 0.75f);
+    public Vector3 aimedLocalPosition = new Vector3(0.0f, -0.20f, 0.45f);
     public Vector3 aimedLocalRotation = new Vector3(-5f, 0f, 0f);
 
     [Header("Blend Speed")]
@@ -121,12 +122,20 @@ public class ExtinguisherAimer : MonoBehaviour
 
     void Start()
     {
+        // ── FORCE VR-corrected positions ──
+        // Override any serialized (stale) values from the Inspector.
+        // These are tuned for stereo split-screen (half-width viewports).
+        idleLocalPosition = new Vector3(0.15f, -0.35f, 0.45f);
+        idleLocalRotation = new Vector3(0f, -10f, 0f);
+        aimedLocalPosition = new Vector3(0.0f, -0.20f, 0.45f);
+        aimedLocalRotation = new Vector3(-5f, 0f, 0f);
+
         if (holdPosition != null)
         {
             holdPosition.localPosition = idleLocalPosition;
             holdPosition.localEulerAngles = idleLocalRotation;
         }
-        Debug.Log("ExtinguisherAimer ready");
+        Debug.Log("ExtinguisherAimer ready (VR-corrected positions forced)");
     }
 
     void Update()
@@ -151,6 +160,7 @@ public class ExtinguisherAimer : MonoBehaviour
 
     public bool IsAiming() { return isAiming; }
 }
+
 
 // =============================================================================
 // CLASS 3: ExtinguisherShooter - RT fires spray + recoil + fire suppression
