@@ -1,8 +1,6 @@
 using System.Collections;
 using UnityEngine;
-#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
-#endif
 
 /// <summary>
 /// ManualVRRig — Pure C# stereoscopic VR without any XR Plugin.
@@ -134,42 +132,61 @@ public class ManualVRRig : MonoBehaviour
 
     void InitGyroscope()
     {
-        _gyroAvailable = SystemInfo.supportsGyroscope;
+        // New Input System path — AttitudeSensor replaces the legacy Input.gyro API.
+        // activeInputHandler=1 (New Input System Only) means Input.gyro is dead on Android.
+        _gyroAvailable = AttitudeSensor.current != null;
 
         if (_gyroAvailable)
         {
-            Input.gyro.enabled = true;
+            InputSystem.EnableDevice(AttitudeSensor.current);
             _gyroOffset = Quaternion.identity;
-            Debug.Log("[ManualVRRig] Gyroscope enabled.");
+            _smoothedGyroRot = Quaternion.identity;
+            Debug.Log("[ManualVRRig] AttitudeSensor enabled.");
         }
         else
         {
-            Debug.LogWarning("[ManualVRRig] No gyroscope detected — gamepad look only.");
+            // Fallback — try enabling and check again after one frame
+            StartCoroutine(RetryEnableAttitudeSensor());
+            Debug.LogWarning("[ManualVRRig] AttitudeSensor not available at Start — will retry.");
+        }
+    }
+
+    System.Collections.IEnumerator RetryEnableAttitudeSensor()
+    {
+        yield return null; // wait one frame for devices to enumerate
+        if (AttitudeSensor.current != null)
+        {
+            InputSystem.EnableDevice(AttitudeSensor.current);
+            _gyroAvailable = true;
+            _gyroOffset = Quaternion.identity;
+            Debug.Log("[ManualVRRig] AttitudeSensor enabled (retry success).");
+        }
+        else
+        {
+            Debug.LogWarning("[ManualVRRig] No AttitudeSensor found — gyro head tracking unavailable. Gamepad look only.");
         }
     }
 
     void ReadGyroscope()
     {
         if (!_gyroAvailable || head == null) return;
+        if (AttitudeSensor.current == null) return;
 
-        // ─── CRITICAL COORDINATE CONVERSION ────────────────────────────────
-        // Unity uses a left-handed coordinate system.
-        // Android gyroscope reports attitude in a right-handed coordinate system.
-        //
-        // Raw:        (x,  y,  z,  w)
-        // Converted:  (x,  y, -z, -w)   → flips handedness
-        // Then rotate -90° on X         → maps "phone held upright facing forward"
-        //                                  to "camera looking along Unity's +Z axis"
-        // ───────────────────────────────────────────────────────────────────
-        Quaternion rawAttitude = Input.gyro.attitude;
-        Quaternion deviceRot = new Quaternion(rawAttitude.x, rawAttitude.y, -rawAttitude.z, -rawAttitude.w);
-        Quaternion unityRot = Quaternion.Euler(-90f, 0f, 0f) * deviceRot;
+        // ─── COORDINATE CONVERSION (New Input System AttitudeSensor) ──────────
+        // AttitudeSensor.attitude is in Android sensor space (right-handed).
+        // Unity is left-handed. Same conversion as legacy Input.gyro.attitude:
+        //   Flip Z and W to convert handedness, then rotate -90° on X to
+        //   map "phone upright facing forward" → "Unity camera looking +Z".
+        // ─────────────────────────────────────────────────────────────────────
+        Quaternion raw = AttitudeSensor.current.attitude.ReadValue();
+        Quaternion deviceRot  = new Quaternion(raw.x, raw.y, -raw.z, -raw.w);
+        Quaternion unityRot   = Quaternion.Euler(-90f, 0f, 0f) * deviceRot;
 
-        // Apply the recenter offset to zero out the starting rotation
-        Quaternion recenteredRot = _gyroOffset * unityRot;
+        // Apply the recenter offset to zero out the starting orientation
+        Quaternion recentered = _gyroOffset * unityRot;
 
         // Smooth to reduce jitter
-        _smoothedGyroRot = Quaternion.Slerp(_smoothedGyroRot, recenteredRot, 1f - gyroSmoothFactor);
+        _smoothedGyroRot = Quaternion.Slerp(_smoothedGyroRot, recentered, 1f - gyroSmoothFactor);
 
         head.localRotation = _smoothedGyroRot;
     }
@@ -177,15 +194,15 @@ public class ManualVRRig : MonoBehaviour
     /// <summary>Call this to recenter the gyroscope to the current phone orientation.</summary>
     public void RecenterGyro()
     {
-        if (!_gyroAvailable) return;
+        if (!_gyroAvailable || AttitudeSensor.current == null) return;
 
-        Quaternion rawAttitude = Input.gyro.attitude;
-        Quaternion deviceRot = new Quaternion(rawAttitude.x, rawAttitude.y, -rawAttitude.z, -rawAttitude.w);
-        Quaternion unityRot = Quaternion.Euler(-90f, 0f, 0f) * deviceRot;
+        Quaternion raw      = AttitudeSensor.current.attitude.ReadValue();
+        Quaternion deviceRot = new Quaternion(raw.x, raw.y, -raw.z, -raw.w);
+        Quaternion unityRot  = Quaternion.Euler(-90f, 0f, 0f) * deviceRot;
 
-        // Offset = inverse of current, so applying it zeroes out the base orientation
+        // Offset = inverse of current → applying it zeroes out the base orientation
         _gyroOffset = Quaternion.Inverse(unityRot);
-        Debug.Log("[ManualVRRig] Gyro recentered.");
+        Debug.Log("[ManualVRRig] Gyro recentered (AttitudeSensor).");
     }
 
     // -----------------------------------------------------------------------
@@ -199,11 +216,7 @@ public class ManualVRRig : MonoBehaviour
         float h = 0f;
         float v = 0f;
 
-#if ENABLE_INPUT_SYSTEM
-        // ── New Input System path ──────────────────────────────────────────
-        // Reads the right stick from the first connected Gamepad.
-        // Note: In Input System, the Y axis is already inverted relative to
-        //       "looking up" — positive Y = stick pushed up = look up (positive pitch).
+        // New Input System only (activeInputHandler=1)
         var gp = Gamepad.current;
         if (gp != null)
         {
@@ -211,17 +224,6 @@ public class ManualVRRig : MonoBehaviour
             h = stick.x;
             v = stick.y;
         }
-#else
-        // ── Legacy Input Manager path ─────────────────────────────────────
-        // Add these axes in Edit → Project Settings → Input Manager:
-        //   Name: "RightStickHorizontal"  → Joystick Axis 4  (or 3 depending on controller)
-        //   Name: "RightStickVertical"    → Joystick Axis 5  (or 4)
-        // Xbox controller axis mapping on Android:
-        //   Axis 3 = Right Stick X
-        //   Axis 4 = Right Stick Y
-        h = Input.GetAxis("RightStickHorizontal");
-        v = Input.GetAxis("RightStickVertical");
-#endif
         // Apply dead zone
         if (Mathf.Abs(h) < 0.12f) h = 0f;
         if (Mathf.Abs(v) < 0.12f) v = 0f;
