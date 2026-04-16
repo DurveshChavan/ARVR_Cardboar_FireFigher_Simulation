@@ -142,6 +142,8 @@ public class ManualVRRig : MonoBehaviour
             _gyroOffset = Quaternion.identity;
             _smoothedGyroRot = Quaternion.identity;
             Debug.Log("[ManualVRRig] AttitudeSensor enabled.");
+            // Auto-recenter after 1 second so the initial phone position = forward/level
+            StartCoroutine(AutoRecenterAfterDelay(1.0f));
         }
         else
         {
@@ -160,11 +162,20 @@ public class ManualVRRig : MonoBehaviour
             _gyroAvailable = true;
             _gyroOffset = Quaternion.identity;
             Debug.Log("[ManualVRRig] AttitudeSensor enabled (retry success).");
+            // Auto-recenter after sensor has settled
+            StartCoroutine(AutoRecenterAfterDelay(1.0f));
         }
         else
         {
             Debug.LogWarning("[ManualVRRig] No AttitudeSensor found — gyro head tracking unavailable. Gamepad look only.");
         }
+    }
+
+    System.Collections.IEnumerator AutoRecenterAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        RecenterGyro();
+        Debug.Log("[ManualVRRig] Auto-recentered gyro after " + delay + "s");
     }
 
     void ReadGyroscope()
@@ -180,7 +191,10 @@ public class ManualVRRig : MonoBehaviour
         // ─────────────────────────────────────────────────────────────────────
         Quaternion raw = AttitudeSensor.current.attitude.ReadValue();
         Quaternion deviceRot  = new Quaternion(raw.x, raw.y, -raw.z, -raw.w);
-        Quaternion unityRot   = Quaternion.Euler(-90f, 0f, 0f) * deviceRot;
+        // +90° on X: maps LandscapeLeft AttitudeSensor space to Unity camera forward (+Z).
+        // (Original code used -90° for legacy Input.gyro in portrait — this is the corrected
+        // value for New Input System AttitudeSensor in LandscapeLeft orientation.)
+        Quaternion unityRot   = Quaternion.Euler(90f, 0f, 0f) * deviceRot;
 
         // Apply the recenter offset to zero out the starting orientation
         Quaternion recentered = _gyroOffset * unityRot;
@@ -198,7 +212,7 @@ public class ManualVRRig : MonoBehaviour
 
         Quaternion raw      = AttitudeSensor.current.attitude.ReadValue();
         Quaternion deviceRot = new Quaternion(raw.x, raw.y, -raw.z, -raw.w);
-        Quaternion unityRot  = Quaternion.Euler(-90f, 0f, 0f) * deviceRot;
+        Quaternion unityRot  = Quaternion.Euler(90f, 0f, 0f) * deviceRot;
 
         // Offset = inverse of current → applying it zeroes out the base orientation
         _gyroOffset = Quaternion.Inverse(unityRot);
