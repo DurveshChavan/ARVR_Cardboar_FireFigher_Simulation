@@ -5,7 +5,7 @@ milestone_name: milestone
 status: Ready to plan
 last_updated: "2026-04-12T21:14:21.470Z"
 progress:
-  total_phases: 7
+  total_phases: 9
   completed_phases: 3
   total_plans: 9
   completed_plans: 9
@@ -38,6 +38,7 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 | 5 | Game Logic Scripts | ○ Pending |
 | 6 | HUD Canvas | ○ Pending |
 | 7 | Android Build | ○ Pending |
+| 8 | Visual Polish and Asset Integration | ○ Pending |
 
 ## Critical Context for Every Agent
 
@@ -60,3 +61,9 @@ See: .planning/PROJECT.md (updated 2026-04-13)
 | 260415-1is | Phase A: Fix camera height, weapon/HUD reparent, fire visuals, spray wiring | 2026-04-14 | e62b532 | [260415-1is](./quick/260415-1is-phase-a-fix-camera-height-reparent-weapo/) |
 | 260415-1x4 | Fix extinguisher scale and hold position | 2026-04-14 | 628634f | [260415-1x4](./quick/260415-1x4-fix-extinguisher-scale-and-hold-position/) |
 
+
+## Accumulated Context
+
+### Roadmap Evolution
+- Phase 8 added: Visual Polish and Asset Integration (ATLAS kitchen, iPoly3D server room, UnityTechnologies fire particles, Fire_Extinguisher model swap)
+- Phase 9 added: Fix Android APK crash on device after splash screen

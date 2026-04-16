@@ -14,6 +14,7 @@
 | 5 | Game Logic Scripts | ExtinguisherController, SprayController, GameManager | EXT-01–03, SUP-01–06, GM-01–05 | 3 |
 | 6 | HUD Canvas | TMP_Text timer, extinguisher popup, result display | HUD-01–04 | 2 |
 | 7 | Android Build | Android Player Settings, export APK, device install | AND-01–03 | 3 |
+| 8 | Visual Polish and Asset Integration | Replace primitive environments with downloaded asset-pack prefabs; upgrade fire particles; swap extinguisher model | POL-01–10 | 4 |
 
 ## Phase Details
 
@@ -195,6 +196,41 @@
 | AND-01 to AND-03 | 7 | 3 |
 
 **Total v1 requirements:** 43 | **Mapped:** 43 | **Unmapped:** 0 ✓
+
+### Phase 8: Visual Polish and Asset Integration
+
+**Goal:** Replace placeholder primitive geometry with downloaded asset-pack prefabs (ATLAS Kitchen, iPoly3D Server Room, Fire_Extinguisher model) and upgrade fire particle effects using UnityTechnologies ParticlePack — resulting in a polished, believable VR training environment.
+
+**Requirements:** POL-01, POL-02, POL-03, POL-04, POL-05, POL-06, POL-07, POL-08, POL-09, POL-10
+
+**Plans:**
+1. Kitchen environment upgrade — swap primitives for ATLAS Customizable Kitchen Pack prefabs (Counter_Standard, Stove_Electric, Sink_Double, Counter_Corner). Keep LPG cylinder GameObject, re-parent fire particle.
+2. Fire particle upgrade — replace programmatic ParticleSystem with UnityTechnologies LargeFlames.prefab (kitchen) and MediumFlames.prefab (server room). Wire both into FireController.
+3. Server room environment upgrade — swap primitives for iPoly3D Server Room prefabs (server, server_2, ceiling_light, electric cable, panel, wall). Keep fire spawn point.
+4. Extinguisher model swap — replace Ext_DCP/CO2/Water primitive capsule GameObjects with Fire_Extinguisher/Prefab/fire extinguisher.prefab. Adjust hold transforms so model sits naturally.
+
+**Success Criteria:**
+1. Kitchen scene uses ATLAS kitchen prefabs — counters, stove, sink visible at correct scale
+2. Server room uses iPoly3D prefabs — server racks, ceiling lights, cable trays visible
+3. LargeFlames particle prefab plays on LPG cylinder in kitchen; MediumFlames plays on server rack
+4. FireController correctly drives emission rate and scale on both new particle prefabs
+5. Fire_Extinguisher FBX model appears in player hand at correct scale/position
+6. All existing game logic (spray, suppression, timer, HUD) continues to work unchanged
+7. No new input API calls introduced — complies with project constraint
+
+**Depends on:** Phase 7
+
+**UI hint:** no
+
+### Phase 9: Fix Android APK crash on device after splash screen
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 8
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 9 to break down)
 
 ---
 *Created: 2026-04-13*
