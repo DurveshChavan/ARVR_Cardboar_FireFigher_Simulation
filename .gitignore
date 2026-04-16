@@ -1,0 +1,70 @@
+# =============================================================================
+# Unity .gitignore — VR Firefighter Training Game
+# =============================================================================
+
+# Unity generated folders
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emory[Cc]aptures/
+[Rr]ecordings/
+
+# Unity asset meta files — only ignore if you keep assets tracked
+# MemoryCaptures can get excessive in size
+[Mm]emory[Cc]aptures/
+
+# Unity cache
+.idea/
+.vs/
+*.vsconfig
+*.sln
+*.csproj
+
+# APK builds
+*.apk
+*.aab
+BUILDS/
+
+# OS junk
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Unity crash reports
+sysinfo.txt
+*.stackdump
+
+# Zip artifacts
+*.zip
+
+# Rider/VS/JetBrains
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.pidb
+*.unityproj
+*.booproj
+
+# Gradle build cache
+.gradle/
+
+# Python
+__pycache__/
+*.pyc
+
+# Node (if any tooling)
+node_modules/
+
+# GSD planning scratch
+.planning/intel/
