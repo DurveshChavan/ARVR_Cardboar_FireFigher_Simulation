@@ -310,33 +310,27 @@ public class ExtinguisherShooter : MonoBehaviour
         if (GameManager.Instance == null) return;
         if (!GameManager.Instance.gameActive) return;
 
-        var fire = GameManager.Instance.currentFireController;
-        if (fire == null)
-        {
-            fire = Object.FindFirstObjectByType<FireController>();
-            if (fire != null) GameManager.Instance.currentFireController = fire;
-        }
-        if (fire == null) return;
-
         var ext = GameManager.Instance.currentExtinguisher;
-        var sc = GameManager.Instance.currentScenario;
+        var sc  = GameManager.Instance.currentScenario;
 
-        // Water on electrical = instant fail
+        // Water on electrical = instant fail (check once, before reducing anything)
         if (ext == GameManager.ExtType.Water &&
-            sc == GameManager.Scenario.ServerRoom &&
+            sc  == GameManager.Scenario.ServerRoom &&
             !alreadyTriggeredInstantFail)
         {
             alreadyTriggeredInstantFail = true;
             StopFire();
-            GameManager.Instance.InstantFail("DANGER - Electrocution hazard!\nNever use water on electrical fires.");
+            GameManager.Instance.InstantFail(
+                "DANGER - Electrocution hazard!\nNever use water on electrical fires.");
             return;
         }
 
+        // Calculate suppress rate for this extinguisher/scenario combo
         float suppressRate = 0f;
         if (sc == GameManager.Scenario.Kitchen)
         {
-            if (ext == GameManager.ExtType.DCP) suppressRate = 0.25f;
-            else if (ext == GameManager.ExtType.CO2) suppressRate = 0.03f;
+            if (ext == GameManager.ExtType.DCP)   suppressRate = 0.25f;
+            else if (ext == GameManager.ExtType.CO2)   suppressRate = 0.03f;
             else if (ext == GameManager.ExtType.Water) suppressRate = 0.01f;
         }
         else if (sc == GameManager.Scenario.ServerRoom)
@@ -344,6 +338,31 @@ public class ExtinguisherShooter : MonoBehaviour
             if (ext == GameManager.ExtType.CO2) suppressRate = 0.25f;
             else if (ext == GameManager.ExtType.DCP) suppressRate = 0.04f;
         }
-        fire.ReduceFire(suppressRate);
+
+        if (suppressRate <= 0f) return;
+
+        // ── Reduce ALL fires simultaneously ──────────────────────────────────
+        // Server room has 3 FireSources; kitchen has 1. We target every FireController
+        // found by GameManager.StartGame() so all fires respond to the spray at once.
+        FireController[] fires = GameManager.Instance.allFireControllers;
+
+        if (fires != null && fires.Length > 0)
+        {
+            foreach (FireController fc in fires)
+            {
+                if (fc != null) fc.ReduceFire(suppressRate);
+            }
+        }
+        else
+        {
+            // Fallback: single-fire backward compat
+            var fire = GameManager.Instance.currentFireController;
+            if (fire == null)
+            {
+                fire = Object.FindFirstObjectByType<FireController>();
+                if (fire != null) GameManager.Instance.currentFireController = fire;
+            }
+            if (fire != null) fire.ReduceFire(suppressRate);
+        }
     }
 }

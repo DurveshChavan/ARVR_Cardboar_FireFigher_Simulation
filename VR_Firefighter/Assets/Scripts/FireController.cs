@@ -71,10 +71,10 @@ public class FireController : MonoBehaviour
             }
         }
 
-        // Win condition
+        // Notify GameManager — it will check if ALL fires are out before declaring win
         if (fireScale <= 0.05f && GameManager.Instance != null && GameManager.Instance.gameActive)
         {
-            GameManager.Instance.MissionComplete();
+            GameManager.Instance.NotifyFireExtinguished(this);
         }
     }
 
