@@ -1,8 +1,8 @@
 # VR Firefighter Training Game 🔥
 
-> **A mobile VR fire extinguisher training simulation built for Google Cardboard + Android.**
+> **A mobile VR fire extinguisher training simulation built for Google Cardboard + Android with Xbox controller input.**
 
-Players choose between two fire scenarios, select the correct extinguisher type, and suppress the fire before a 60-second timer expires — teaching real-world fire safety decision-making in an immersive VR environment.
+Developed as a **group project** for the **Multimedia AR/VR** course. Players choose between two fire scenarios, select the correct extinguisher type, and suppress the fire before a 60-second timer expires — teaching real-world fire safety decision-making in an immersive stereoscopic VR environment.
 
 ---
 
@@ -172,9 +172,16 @@ VR_Firefighter/
 
 ---
 
-## 👥 Team
+## 👥 Team — Multimedia AR/VR Course
 
-Built as a 12-hour rapid prototype for fire safety VR training demonstration.
+| Member | Role |
+|---|---|
+| **[Member 1]** | VR Rig, Gyroscope, Android Build & Deploy |
+| **[Member 2]** | Game Logic, Fire System, Scenario Manager |
+| **[Member 3]** | 3D Environments (Kitchen & Server Room) |
+| **[Member 4]** | UI/HUD, Extinguisher System, Scene Integration |
+
+> *(Update names — see PPT outline in [`docs/PRESENTATION_OUTLINE.md`](docs/PRESENTATION_OUTLINE.md))*
 
 ---
 
