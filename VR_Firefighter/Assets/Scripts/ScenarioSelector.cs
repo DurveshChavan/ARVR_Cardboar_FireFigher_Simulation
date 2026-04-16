@@ -80,4 +80,21 @@ public class ScenarioSelector : MonoBehaviour
             if (go.name == name && go.scene.isLoaded) return go;
         return null;
     }
+
+    /// <summary>
+    /// Called by GameManager after a mission ends to return to the selection screen.
+    /// Resets input guards so A/B button selection works correctly for the next round.
+    /// </summary>
+    public void ShowLobby()
+    {
+        // Reset startup guards so button input works immediately on return
+        startupDelay = 0f;
+        frameCount = 10; // already past the frame guard
+
+        if (kitchenRoot != null)     kitchenRoot.SetActive(false);
+        if (serverRoomRoot != null)  serverRoomRoot.SetActive(false);
+        if (selectionScreen != null) selectionScreen.SetActive(true);
+
+        Debug.Log("[ScenarioSelector] Lobby shown — ready for next scenario selection.");
+    }
 }
